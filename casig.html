@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Emoji Tycoon 2026: Pro Edition</title>
+    <style>
+        :root { --main: #f1c40f; --bg: #0b0b0b; --panel: #1a1a1a; --green: #2ecc71; --red: #e74c3c; }
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            font-family: sans-serif; 
+            touch-action: manipulation;
+            /* Убираем выделение текста и элементов */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body { background: var(--bg); color: #fff; margin: 0; height: 100vh; display: flex; overflow: hidden; }
+        
+        .sidebar { width: 65px; background: var(--panel); display: flex; flex-direction: column; align-items: center; padding: 15px 0; gap: 20px; border-right: 1px solid #333; flex-shrink: 0; }
+        .nav-btn { width: 45px; height: 45px; border-radius: 50%; background: #222; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; transition: 0.2s; border: 2px solid transparent; }
+        .nav-btn.active { background: var(--main); color: #000; box-shadow: 0 0 15px var(--main); }
+
+        .main { flex: 1; display: flex; flex-direction: column; width: calc(100% - 65px); }
+        .top-bar { height: 60px; background: var(--panel); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #333; }
+        .bal { color: var(--green); font-weight: 800; font-size: 20px; }
+
+        .screen { display: none; flex-direction: column; align-items: center; flex: 1; padding: 15px; overflow-y: auto; }
+        .screen.active { display: flex; }
+
+        .c-card { width: 100%; max-width: 400px; background: var(--panel); border-radius: 15px; padding: 15px; margin-bottom: 12px; border: 1px solid #333; }
+        .trade-row { display: flex; gap: 5px; margin-top: 10px; align-items: center; }
+        .qty-input { width: 60px; padding: 10px; background: #000; color: #fff; border: 1px solid #444; border-radius: 10px; text-align: center; font-size: 14px; }
+        .t-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: bold; color: #fff; font-size: 12px; }
+        .buy { background: var(--green); } .sell { background: var(--red); }
+        .max-btn { background: #34495e; color: #fff; padding: 10px; border-radius: 10px; border: none; font-size: 10px; font-weight: bold; }
+
+        .bj-table { background: radial-gradient(circle, #1a4a2e 0%, #0d2b1a 100%); padding: 20px; border-radius: 25px; width: 100%; max-width: 400px; border: 4px solid #3d2b1f; text-align: center; }
+        .card { width: 45px; height: 65px; background: #fff; color: #000; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; box-shadow: 0 4px 8px #000; }
+        
+        #coin { 
+            width: 200px; height: 200px; border-radius: 50%; 
+            background: var(--panel); border: 10px solid var(--main); 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 80px; transition: transform 0.1s; 
+            cursor: pointer;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="nav-btn active" onclick="tab('casino', this)">🎰</div>
+        <div class="nav-btn" onclick="tab('bj', this)">🃏</div>
+        <div class="nav-btn" onclick="tab('crypto', this)">📈</div>
+        <div class="nav-btn" onclick="tab('clicker', this)">👆</div>
+        <div class="nav-btn" onclick="tab('shop', this)">🛒</div>
+    </div>
+
+    <div class="main">
+        <div class="top-bar"><div class="bal">💰 <span id="money">0</span></div></div>
+
+        <!-- КАЗИНО -->
+        <div id="casino" class="screen active">
+            <div style="width: 280px; height: 80px; border: 4px solid var(--main); position: relative; overflow: hidden; background: #000; border-radius: 15px;">
+                <div style="position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background: #f00; z-index: 10; transform: translateX(-50%);"></div>
+                <div id="tape" style="display: flex; position: absolute; left: 0; height: 100%;"></div>
+            </div>
+            <div style="margin:20px 0; display:flex; gap:10px; width:100%; max-width:280px;">
+                <input type="number" id="c-bet" value="100" class="qty-input" style="flex:1;">
+                <button onclick="spin()" style="padding:0 20px; background:var(--main); border:none; border-radius:12px; font-weight:bold;">SPIN</button>
+            </div>
+        </div>
+
+        <!-- БЛЕКДЖЕК -->
+        <div id="bj" class="screen">
+            <div class="bj-table">
+                <div id="d-h" style="display:flex; justify-content:center; gap:8px; min-height:65px; margin-bottom:20px;"></div>
+                <div id="p-h" style="display:flex; justify-content:center; gap:8px; min-height:65px;"></div>
+                <div style="font-size:12px; color:var(--main)">Вы: <span id="ps">0</span> | Бот: <span id="ds">0</span></div>
+            </div>
+            <div style="margin-top:20px; width:100%; max-width:320px;">
+                <div id="bj-start-box" style="display:flex; gap:10px; flex-direction:column;">
+                    <div style="display:flex; gap:5px;">
+                        <input type="number" id="bj-bet-input" value="500" class="qty-input" style="flex:1; width:auto;">
+                        <button class="max-btn" onclick="bjMax()">MAX</button>
+                    </div>
+                    <button onclick="bjStart()" style="width:100%; padding:15px; background:var(--green); border:none; border-radius:50px; color:#fff; font-weight:bold;">ИГРАТЬ</button>
+                </div>
+                <div id="bj-p" style="display:none; gap:15px;">
+                    <button onclick="bjHit()" style="flex:1; background:var(--main); padding:18px; border-radius:50px; border:none; font-weight:bold;">HIT</button>
+                    <button onclick="bjStand()" style="flex:1; background:var(--red); padding:18px; border-radius:50px; border:none; color:#fff; font-weight:bold;">STAND</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- БИРЖА -->
+        <div id="crypto" class="screen"><div id="c-list" style="width:100%;"></div></div>
+
+        <!-- КЛИКЕР -->
+        <div id="clicker" class="screen">
+            <div onclick="tap()" id="coin">🪙</div>
+        </div>
+
+        <!-- МАГАЗИН -->
+        <div id="shop" class="screen"><div id="s-list" style="width:100%;"></div></div>
+    </div>
+
+<script>
+    let st = JSON.parse(localStorage.getItem('et_2026_pro')) || {
+        bal: 1000, mult: 1, crypto: {btc:0, eth:0, pepe:0}
+    };
+    let prices = {btc: 52000, eth: 2800, pepe: 0.005}, isS = false;
+
+    function save() {
+        localStorage.setItem('et_2026_pro', JSON.stringify(st));
+        document.getElementById('money').innerText = Math.floor(st.bal).toLocaleString();
+    }
+
+    function tab(id, b) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(n => n.classList.remove('active'));
+        document.getElementById(id).classList.add('active'); b.classList.add('active');
+        if(id==='crypto') renderC(); if(id==='shop') renderS();
+    }
+
+    function tap() { 
+        st.bal += 100 * st.mult; 
+        document.getElementById('coin').style.transform = 'scale(0.9)';
+        setTimeout(()=> document.getElementById('coin').style.transform = 'scale(1)', 50);
+        save(); 
+    }
+
+    // --- БИРЖА ---
+    function renderC() {
+        let h = ''; for(let k in prices) {
+            h += `<div class="c-card"><b>${k.toUpperCase()}</b>: ${prices[k].toFixed(4)} 💰
+            <div class="trade-row">
+                <input type="number" id="q-${k}" value="1" class="qty-input">
+                <button class="max-btn" onclick="cryptoMax('${k}')">MAX</button>
+                <button class="t-btn buy" onclick="trade('${k}',1)">BUY</button>
+                <button class="t-btn sell" onclick="trade('${k}',-1)">SELL</button>
+            </div>
+            <small style="opacity:0.6">У вас: ${st.crypto[k]}</small></div>`;
+        } document.getElementById('c-list').innerHTML = h;
+    }
+
+    function cryptoMax(k) {
+        document.getElementById('q-'+k).value = Math.floor(st.bal / prices[k]);
+    }
+
+    function trade(k, s) {
+        let q = +document.getElementById('q-'+k).value; if(q <= 0) return;
+        if(s===1 && st.bal >= prices[k]*q) { st.bal -= prices[k]*q; st.crypto[k] += q; }
+        else if(s===-1 && st.crypto[k] >= q) { st.bal += prices[k]*q; st.crypto[k] -= q; }
+        renderC(); save();
+    }
+
+    // --- БЛЕКДЖЕК ---
+    let ph=[], dh=[], currentBJBet = 0;
+    function bjMax() { document.getElementById('bj-bet-input').value = Math.floor(st.bal); }
+    function bjStart() { 
+        let bet = +document.getElementById('bj-bet-input').value;
+        if(bet > st.bal || bet < 10) return alert("Ставка невозможна!"); 
+        st.bal -= bet; currentBJBet = bet;
+        ph=[r(), r()]; dh=[r()]; 
+        document.getElementById('bj-start-box').style.display='none'; 
+        document.getElementById('bj-p').style.display='flex'; 
+        updBJ(); save(); 
+    }
+    function r() { return Math.floor(Math.random()*11)+1; }
+    function updBJ() {
+        const c = (h) => h.map(v => `<div class="card">${v}</div>`).join('');
+        document.getElementById('p-h').innerHTML = c(ph); 
+        document.getElementById('d-h').innerHTML = c(dh);
+        document.getElementById('ps').innerText = ph.reduce((a,b)=>a+b,0);
+        document.getElementById('ds').innerText = dh.reduce((a,b)=>a+b,0);
+        if(ph.reduce((a,b)=>a+b,0) > 21) bjEnd('ПЕРЕБОР!');
+    }
+    function bjHit() { ph.push(r()); updBJ(); }
+    function bjStand() { 
+        while(dh.reduce((a,b)=>a+b,0) < 17) dh.push(r()); 
+        updBJ(); 
+        let p=ph.reduce((a,b)=>a+b,0), dScore=dh.reduce((a,b)=>a+b,0); 
+        if(dScore>21 || p>dScore) { st.bal += currentBJBet * 2; bjEnd('ПОБЕДА!'); } 
+        else if(p===dScore) { st.bal += currentBJBet; bjEnd('НИЧЬЯ'); }
+        else bjEnd('ПРОИГРЫШ'); 
+    }
+    function bjEnd(m) { 
+        setTimeout(()=>{ 
+            alert(m); 
+            document.getElementById('bj-start-box').style.display='flex'; 
+            document.getElementById('bj-p').style.display='none'; 
+            save(); 
+        }, 100); 
+    }
+
+    // --- РУЛЕТКА ---
+    function spin() {
+        if(isS) return; let bet = +document.getElementById('c-bet').value; if(bet > st.bal || bet <= 0) return;
+        isS = true; st.bal -= bet; save();
+        const tape = document.getElementById('tape'); tape.innerHTML = '';
+        let mArr = [0.1, 0.5, 1, 1.5, 2, 5, 15];
+        let winM = mArr[Math.floor(Math.random()*mArr.length)];
+        for(let i=0; i<45; i++) {
+            let m = (i === 40) ? winM : mArr[Math.floor(Math.random()*mArr.length)];
+            tape.innerHTML += `<div style="width:80px;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;border-right:1px solid #222;font-weight:bold;">x${m}</div>`;
+        }
+        tape.style.transition = 'none'; tape.style.transform = 'translateX(0)';
+        setTimeout(() => {
+            tape.style.transition = '4s cubic-bezier(0.1, 0, 0.1, 1)';
+            tape.style.transform = 'translateX(-3120px)';
+            setTimeout(() => { st.bal += bet * winM; isS = false; save(); }, 4100);
+        }, 50);
+    }
+
+    function renderS() {
+        const items = [{n:'X2 КЛИК', p:50000, m:2}, {n:'X10 КЛИК', p:1000000, m:10}];
+        document.getElementById('s-list').innerHTML = items.map(i => `
+            <div class="c-card"><b>${i.n}</b><br>
+            <button onclick="if(st.bal>=${i.p}){st.bal-=${i.p};st.mult=${i.m};save();renderS();alert('OK')}" style="width:100%; padding:12px; background:var(--main); border:none; border-radius:12px; margin-top:10px; font-weight:bold;">${i.p.toLocaleString()} 💰</button></div>
+        `).join('');
+    }
+
+    setInterval(() => { 
+        for(let k in prices){ 
+            let vol = k === 'pepe' ? 0.4 : 0.08;
+            prices[k] += prices[k] * (Math.random()*vol*2 - vol); 
+            if(prices[k] < 0.0001) prices[k] = 0.0001; 
+        } 
+        if(document.getElementById('crypto').classList.contains('active')) renderC(); 
+        save(); 
+    }, 10000);
+
+    save();
+</script>
+</body>
+</html>
